@@ -1,6 +1,7 @@
 import numpy as np
 from functools import reduce
 
+
 def sparse_bilateral_filtering(
     depth, image, config, HR=False, mask=None, gsHR=True, edge_id=None, num_iter=None, num_gs_iter=None, spdb=False
 ):
@@ -48,10 +49,10 @@ def sparse_bilateral_filtering(
 def vis_depth_discontinuity(depth, config, vis_diff=False, label=False, mask=None):
     """
     config:
-    - 
+    -
     """
     if label == False:
-        disp = 1./depth
+        disp = 1. / depth
         u_diff = (disp[1:, :] - disp[:-1, :])[:-1, 1:-1]
         b_diff = (disp[:-1, :] - disp[1:, :])[1:, 1:-1]
         l_diff = (disp[:, 1:] - disp[:, :-1])[1:-1, :-1]
@@ -102,6 +103,7 @@ def vis_depth_discontinuity(depth, config, vis_diff=False, label=False, mask=Non
     else:
         return [u_over, b_over, l_over, r_over]
 
+
 def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None, window_size=False):
     sort_time = 0
     replace_time = 0
@@ -112,31 +114,31 @@ def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None,
     sigma_r = config['sigma_r']
     if window_size == False:
         window_size = config['filter_size']
-    midpt = window_size//2
-    ax = np.arange(-midpt, midpt+1.)
+    midpt = window_size // 2
+    ax = np.arange(-midpt, midpt + 1.)
     xx, yy = np.meshgrid(ax, ax)
     if discontinuity_map is not None:
-        spatial_term = np.exp(-(xx**2 + yy**2) / (2. * sigma_s**2))
+        spatial_term = np.exp(-(xx ** 2 + yy ** 2) / (2. * sigma_s ** 2))
 
     # padding
     depth = depth[1:-1, 1:-1]
-    depth = np.pad(depth, ((1,1), (1,1)), 'edge')
-    pad_depth = np.pad(depth, (midpt,midpt), 'edge')
+    depth = np.pad(depth, ((1, 1), (1, 1)), 'edge')
+    pad_depth = np.pad(depth, (midpt, midpt), 'edge')
     if discontinuity_map is not None:
         discontinuity_map = discontinuity_map[1:-1, 1:-1]
-        discontinuity_map = np.pad(discontinuity_map, ((1,1), (1,1)), 'edge')
-        pad_discontinuity_map = np.pad(discontinuity_map, (midpt,midpt), 'edge')
+        discontinuity_map = np.pad(discontinuity_map, ((1, 1), (1, 1)), 'edge')
+        pad_discontinuity_map = np.pad(discontinuity_map, (midpt, midpt), 'edge')
         pad_discontinuity_hole = 1 - pad_discontinuity_map
     # filtering
     output = depth.copy()
-    pad_depth_patches = rolling_window(pad_depth, [window_size, window_size], [1,1])
+    pad_depth_patches = rolling_window(pad_depth, [window_size, window_size], [1, 1])
     if discontinuity_map is not None:
-        pad_discontinuity_patches = rolling_window(pad_discontinuity_map, [window_size, window_size], [1,1])
-        pad_discontinuity_hole_patches = rolling_window(pad_discontinuity_hole, [window_size, window_size], [1,1])
+        pad_discontinuity_patches = rolling_window(pad_discontinuity_map, [window_size, window_size], [1, 1])
+        pad_discontinuity_hole_patches = rolling_window(pad_discontinuity_hole, [window_size, window_size], [1, 1])
 
     if mask is not None:
-        pad_mask = np.pad(mask, (midpt,midpt), 'constant')
-        pad_mask_patches = rolling_window(pad_mask, [window_size, window_size], [1,1])
+        pad_mask = np.pad(mask, (midpt, midpt), 'constant')
+        pad_mask_patches = rolling_window(pad_mask, [window_size, window_size], [1, 1])
     from itertools import product
     if discontinuity_map is not None:
         pH, pW = pad_depth_patches.shape[:2]
@@ -151,13 +153,13 @@ def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None,
                     discontinuity_holes = pad_discontinuity_hole_patches[pi, pj]
                 depth_patch = pad_depth_patches[pi, pj]
                 depth_order = depth_patch.ravel().argsort()
-                patch_midpt = depth_patch[window_size//2, window_size//2]
+                patch_midpt = depth_patch[window_size // 2, window_size // 2]
                 if discontinuity_map is not None:
                     coef = discontinuity_holes.astype(np.float32)
                     if mask is not None:
                         coef = coef * pad_mask_patches[pi, pj]
                 else:
-                    range_term = np.exp(-(depth_patch-patch_midpt)**2 / (2. * sigma_r**2))
+                    range_term = np.exp(-(depth_patch - patch_midpt) ** 2 / (2. * sigma_r ** 2))
                     coef = spatial_term * range_term
                 if coef.max() == 0:
                     output[pi, pj] = patch_midpt
@@ -165,7 +167,7 @@ def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None,
                 if discontinuity_map is not None and (coef.max() == 0):
                     output[pi, pj] = patch_midpt
                 else:
-                    coef = coef/(coef.sum())
+                    coef = coef / (coef.sum())
                     coef_order = coef.ravel()[depth_order]
                     cum_coef = np.cumsum(coef_order)
                     ind = np.digitize(0.5, cum_coef)
@@ -175,14 +177,14 @@ def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None,
         for pi in range(pH):
             for pj in range(pW):
                 if discontinuity_map is not None:
-                    if pad_discontinuity_patches[pi, pj][window_size//2, window_size//2] == 1:
+                    if pad_discontinuity_patches[pi, pj][window_size // 2, window_size // 2] == 1:
                         continue
                     discontinuity_patch = pad_discontinuity_patches[pi, pj]
                     discontinuity_holes = (1. - discontinuity_patch)
                 depth_patch = pad_depth_patches[pi, pj]
                 depth_order = depth_patch.ravel().argsort()
-                patch_midpt = depth_patch[window_size//2, window_size//2]
-                range_term = np.exp(-(depth_patch-patch_midpt)**2 / (2. * sigma_r**2))
+                patch_midpt = depth_patch[window_size // 2, window_size // 2]
+                range_term = np.exp(-(depth_patch - patch_midpt) ** 2 / (2. * sigma_r ** 2))
                 if discontinuity_map is not None:
                     coef = spatial_term * range_term * discontinuity_holes
                 else:
@@ -193,7 +195,7 @@ def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None,
                 if discontinuity_map is not None and (coef.sum() == 0):
                     output[pi, pj] = patch_midpt
                 else:
-                    coef = coef/(coef.sum())
+                    coef = coef / (coef.sum())
                     coef_order = coef.ravel()[depth_order]
                     cum_coef = np.cumsum(coef_order)
                     ind = np.digitize(0.5, cum_coef)
@@ -201,15 +203,18 @@ def bilateral_filter(depth, config, discontinuity_map=None, HR=False, mask=None,
 
     return output
 
+
 def rolling_window(a, window, strides):
-    assert len(a.shape)==len(window)==len(strides), "\'a\', \'window\', \'strides\' dimension mismatch"
-    shape_fn = lambda i,w,s: (a.shape[i]-w)//s + 1
-    shape = [shape_fn(i,w,s) for i,(w,s) in enumerate(zip(window, strides))] + list(window)
+    assert len(a.shape) == len(window) == len(strides), "\'a\', \'window\', \'strides\' dimension mismatch"
+    shape_fn = lambda i, w, s: (a.shape[i] - w) // s + 1
+    shape = [shape_fn(i, w, s) for i, (w, s) in enumerate(zip(window, strides))] + list(window)
+
     def acc_shape(i):
-        if i+1>=len(a.shape):
+        if i + 1 >= len(a.shape):
             return 1
         else:
-            return reduce(lambda x,y:x*y, a.shape[i+1:])
-    _strides = [acc_shape(i)*s*a.itemsize for i,s in enumerate(strides)] + list(a.strides)
+            return reduce(lambda x, y: x * y, a.shape[i + 1:])
+
+    _strides = [acc_shape(i) * s * a.itemsize for i, s in enumerate(strides)] + list(a.strides)
 
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=_strides)

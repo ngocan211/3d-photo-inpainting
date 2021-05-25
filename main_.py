@@ -1,50 +1,34 @@
-import numpy as np
-import argparse
-import glob
 import os
-from functools import partial
-import vispy
-import scipy.misc as misc
-from tqdm import tqdm
-import yaml
-import time
-import sys
-from mesh import write_ply, read_ply, output_3d_photo
-from utils import get_MiDaS_samples, read_MiDaS_depth
-import torch
-import cv2
-from skimage.transform import resize
-import imageio
 import copy
-from networks import Inpaint_Color_Net, Inpaint_Depth_Net, Inpaint_Edge_Net
-from MiDaS.run import run_depth
-from MiDaS.monodepth_net import MonoDepthNet
+import time
+
+import cv2
+import yaml
+import torch
+import vispy
+import imageio
+import numpy as np
+
+from tqdm import tqdm
+
 import MiDaS.MiDaS_utils as MiDaS_utils
+from MiDaS.run import run_depth
+from mesh import write_ply, read_ply, output_3d_photo
+from MiDaS.monodepth_net import MonoDepthNet
 from bilateral_filtering import sparse_bilateral_filtering
+from utils import get_MiDaS_samples, read_MiDaS_depth
+from networks import Inpaint_Color_Net, Inpaint_Depth_Net, Inpaint_Edge_Net
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--config', type=str, default='argument.yml', help='Configure of post processing')
-args = parser.parse_args()
-config = yaml.load(open(args.config, 'r'))
-if config['offscreen_rendering'] is True:
-    vispy.use(app='egl')
-os.makedirs(config['mesh_folder'], exist_ok=True)
-os.makedirs(config['video_folder'], exist_ok=True)
-os.makedirs(config['depth_folder'], exist_ok=True)
-sample_list = get_MiDaS_samples(config['src_folder'], config['depth_folder'], config, config['specific'])
-normal_canvas, all_canvas = None, None
 
-if isinstance(config["gpu_ids"], int) and (config["gpu_ids"] >= 0):
-    device = config["gpu_ids"]
-else:
-    device = "cpu"
-
-print(f"running on device {device}")
-
-for idx in tqdm(range(len(sample_list))):
-    depth = None
-    sample = sample_list[idx]
+def video3d(sample, config):
     print("Current Source ==> ", sample['src_pair_name'])
+    if isinstance(config["gpu_ids"], int) and (config["gpu_ids"] >= 0):
+        device = config["gpu_ids"]
+    else:
+        device = "cpu"
+
+    print(f"running on device {device}")
+
     mesh_fi = os.path.join(config['mesh_folder'], sample['src_pair_name'] + '.ply')
     image = imageio.imread(sample['ref_img_fi'])
 
@@ -111,12 +95,9 @@ for idx in tqdm(range(len(sample_list))):
                             depth_edge_model,
                             depth_feat_model)
 
-        if rt_info is False:
-            continue
-        rgb_model = None
-        color_feat_model = None
-        depth_edge_model = None
-        depth_feat_model = None
+        # if rt_info is False:
+        #     continue
+
         torch.cuda.empty_cache()
     if config['save_ply'] is True or config['load_ply'] is True:
         verts, colors, faces, Height, Width, hFov, vFov = read_ply(mesh_fi)
@@ -137,5 +118,15 @@ for idx in tqdm(range(len(sample_list))):
                                                 image.copy(), copy.deepcopy(sample['int_mtx']), config, image,
                                                 videos_poses, video_basename, config.get('original_h'),
                                                 config.get('original_w'), border=border, depth=depth,
-                                                normal_canvas=normal_canvas, all_canvas=all_canvas,
+                                                normal_canvas=None, all_canvas=None,
                                                 mean_loc_depth=mean_loc_depth)
+
+
+config = yaml.load(open('argument.yml', 'r'))
+
+if config['offscreen_rendering'] is True:
+    vispy.use(app='egl')
+
+for midas_sample in tqdm(get_MiDaS_samples(config['src_folder'], config['depth_folder'], config, config['specific'])):
+    depth = None
+    video3d(midas_sample, config)
