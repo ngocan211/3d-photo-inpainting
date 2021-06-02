@@ -2313,8 +2313,6 @@ class Canvas_view():
         self.view.camera.view_changed()
 
 
-
-
 def output_3d_photo_(image, sample, ply_data, config):
     verts, colors, faces, Height, Width, hFov, vFov = ply_data
     depth = read_MiDaS_depth(sample['depth_fi'], 3.0, config['output_h'], config['output_w'])
@@ -2339,7 +2337,7 @@ def output_3d_photo_(image, sample, ply_data, config):
 def output_3d_photo(verts, colors, faces, Height, Width, hFov, vFov, tgt_poses, video_traj_types, ref_pose,
                     output_dir, ref_image, int_mtx, config, image, videos_poses, video_basename, original_H=None,
                     original_W=None,
-                    border=None, depth=None, normal_canvas=None, all_canvas=None, mean_loc_depth=None):
+                    border=None, depth=None, normal_canvas=None, all_canvas=None, mean_loc_depth=None, id_type=2):
     cam_mesh = netx.Graph()
     cam_mesh.graph['H'] = Height
     cam_mesh.graph['W'] = Width
@@ -2403,7 +2401,8 @@ def output_3d_photo(verts, colors, faces, Height, Width, hFov, vFov, tgt_poses, 
                   img.shape[1]]
     anchor = np.array(anchor)
     plane_width = np.tan(fov_in_rad / 2.) * np.abs(mean_loc_depth)
-    for video_pose, video_traj_type in zip(videos_poses, video_traj_types):
+    # for video_pose, video_traj_type in zip(videos_poses, video_traj_types):
+    for video_pose, video_traj_type in zip([videos_poses[id_type]], [video_traj_types[id_type]]):
         stereos = []
         tops = [];
         buttoms = [];
