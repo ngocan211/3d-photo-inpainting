@@ -3,14 +3,12 @@ from functools import reduce
 
 
 def sparse_bilateral_filtering(
-    depth, image, config, HR=False, mask=None, gsHR=True, edge_id=None, num_iter=None, num_gs_iter=None, spdb=False
+        depth, image, config, HR=False, mask=None, gsHR=True, edge_id=None, num_iter=None, num_gs_iter=None, spdb=False
 ):
     """
     config:
     - filter_size
     """
-    import time
-
     save_images = []
     save_depths = []
     save_discontinuities = []
