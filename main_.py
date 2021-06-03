@@ -1,4 +1,6 @@
 import os
+import sys
+
 import cv2
 import time
 import yaml
@@ -103,7 +105,7 @@ def gen_ply(sample, config):
     torch.cuda.empty_cache()
 
 
-def video3d(sample, config):
+def video3d(sample, config, id_type):
     image = imageio.imread(sample['ref_img_fi'])
 
     # process gray image
@@ -120,18 +122,21 @@ def video3d(sample, config):
     # Load ply data files
     ply_data = read_ply(os.path.join(config['mesh_folder'], sample['src_pair_name'] + '.ply'))
 
-    output_3d_photo_(image, sample, ply_data, config)
+    output_3d_photo_(image, sample, ply_data, config, id_type)
 
 
-config = yaml.load(open('argument.yml', 'r'))
+if __name__ == '__main__':
+    type_id = int((sys.argv[1:] + [0])[0])
+    uuid = (sys.argv[2:] + [''])[0]
+    config = yaml.load(open('argument.yml', 'r'))
 
-if config['offscreen_rendering'] is True:
-    vispy.use(app='egl')
+    if config['offscreen_rendering'] is True:
+        vispy.use(app='egl')
 
-sample = get_MiDaS_samples_('original', config)
+    sample = get_MiDaS_samples_('original', config)
 
-# process some config
-config = config_adjust(sample, config)
+    # process some config
+    config = config_adjust(sample, config)
 
-video3d(sample=get_MiDaS_samples_('original', config), config=config)
-# gen_ply(sample=sample, config=config)
+    video3d(sample=get_MiDaS_samples_(uuid, config), config=config, id_type=type_id)
+    # gen_ply(sample=sample, config=config)

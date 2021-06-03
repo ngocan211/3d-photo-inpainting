@@ -1,0 +1,113 @@
+<html>
+
+<head>
+    <title>ACWorks 3D Video</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function video_upload(url, uuid) {
+            var numline = 0
+            var i;
+            document.getElementById("submit").disabled = true;
+            document.getElementById("submit").value = 'Processing';
+
+            for (i = 0; i < 1000 && numline < 13; i++) {
+                await sleep(2000);
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (res) {
+                        element = document.getElementById("statustext");
+                        element.value = res;
+                        numline_ = res.split(/\r\n|\r|\n/).length
+                        numline = numline_
+                    }
+                })
+            }
+            document.getElementById("link").innerHTML = `
+                    <a target="_blank" href='videos/${uuid}_swing.mp4' >${uuid}_swing.mp4</a><br>
+                    <a target="_blank" href='videos/${uuid}_circle.mp4'>${uuid}_circle.mp4</a><br>
+                    <a target="_blank" href='videos/${uuid}_dolly-zoom-in.mp4'>${uuid}_dolly-zoom-in.mp4</a><br>
+                    <a target="_blank" href='videos/${uuid}_zoom-in.mp4'>${uuid}_zoom-in.mp4</a><br>
+                    `
+            document.getElementById("submit").disabled = false;
+            document.getElementById("submit").value = 'Upload';
+        }
+
+        function video(url) {
+            console.log(url)
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (res) {
+                    console.log(res['render'])
+                    video_render(res['render'], res['uuid'])
+                }
+            })
+        }
+
+        function upload_to_pre_url(file, pre_signed_url, original_url) {
+            fetch(pre_signed_url, {
+                method: 'PUT',
+                body: file
+            }).then(() => {
+                let request_url = document.location.origin + '/video?object_id=' + encodeURIComponent(original_url)
+                console.log(original_url)
+                // document.location.href = request_url;
+                video(request_url)
+            }).catch((e) => {
+                console.error(e);
+            });
+        }
+
+        function pre_signed_upload(file) {
+            $.ajax({
+                url: 'https://54q2xv45m8.execute-api.ap-northeast-1.amazonaws.com/dev/upload-url',
+                type: 'POST',
+                data: JSON.stringify({"files": [{"filename": file.name, "content_type": file.type}]}),
+                success: function (res) {
+                    upload_to_pre_url(file, res[0]["upload_url"], res[0]["original_url"])
+                    // console.log(res)
+                }
+            })
+        }
+
+        function submit_file() {
+            document.getElementById("submit").disabled = true;
+            document.getElementById("submit").value = 'Uploading...';
+            document.getElementById("link").innerHTML = '';
+            pre_signed_upload((document.querySelector("#selector").files)[0]);
+            document.getElementById("submit").disabled = false;
+            document.getElementById("submit").value = 'Upload';
+        }
+    </script>
+</head>
+<body>
+<form>
+    Upload image files:<br>
+    <input type="file" id="selector" multiple>
+    <input id="submit" type="button" value="Upload" onclick="submit_file()">
+</form>
+<div id="thumbnail">
+</div>
+<div id="status">
+    <textarea id="statustext" rows="20" cols="200">
+  </textarea>
+</div>
+<div id="link">
+
+</div>
+</body>
+</html>

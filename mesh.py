@@ -187,12 +187,12 @@ def generate_init_node(mesh, config, min_node_in_cc):
         far_nodes = [] if mesh_nodes[node].get('far') is None else mesh_nodes[node]['far']
         for far_node in far_nodes:
             if mesh.has_node(far_node) and mesh_nodes[far_node].get('near') is not None and node in \
-                    mesh_nodes[far_node]['near']:
+                mesh_nodes[far_node]['near']:
                 mesh_nodes[far_node]['near'].remove(node)
         near_nodes = [] if mesh_nodes[node].get('near') is None else mesh_nodes[node]['near']
         for near_node in near_nodes:
             if mesh.has_node(near_node) and mesh_nodes[near_node].get('far') is not None and node in \
-                    mesh_nodes[near_node]['far']:
+                mesh_nodes[near_node]['far']:
                 mesh_nodes[near_node]['far'].remove(node)
 
     [mesh.remove_node(node) for node in remove_nodes]
@@ -311,7 +311,7 @@ def reassign_floating_island(mesh, info_on_pix, image, depth):
                 real_nes = []
                 for ne in get_cross_nes(lost_x, lost_y):
                     if not (is_inside(ne[0], ne[1], bord_up, bord_down, bord_left, bord_right)) or \
-                            edge_depth_map[ne[0], ne[1]] == 0:
+                        edge_depth_map[ne[0], ne[1]] == 0:
                         continue
                     propagated_depth.append(edge_depth_map[ne[0], ne[1]])
                     real_nes.append(ne)
@@ -462,12 +462,12 @@ def group_edges(LDI, config, image, remove_conflict_ordinal, spdb=False):
                     if [diag_candi[0], diag_candi[1]] in diagonal_xys and LDI.degree(diag_candi) < 4:
                         if diag_candi not in inval_diag_candi:
                             if not exceed_thre(1. / node[2], 1. / diag_candi[2], config['depth_threshold']) or \
-                                    (comm_opp_bg(LDI, diag_candi, node) and comm_opp_fg(LDI, diag_candi, node)):
+                                (comm_opp_bg(LDI, diag_candi, node) and comm_opp_fg(LDI, diag_candi, node)):
                                 add_new_node(discont_graph, diag_candi)
                                 add_new_edge(discont_graph, diag_candi, node)
                         if key_exist(LDI.nodes[diag_candi], 'must_connect') and node in LDI.nodes[diag_candi][
                             'must_connect'] and \
-                                key_exist(LDI.nodes[node], 'must_connect') and diag_candi in LDI.nodes[node][
+                            key_exist(LDI.nodes[node], 'must_connect') and diag_candi in LDI.nodes[node][
                             'must_connect']:
                             add_new_node(discont_graph, diag_candi)
                             add_new_edge(discont_graph, diag_candi, node)
@@ -672,7 +672,7 @@ def remove_redundant_edge(mesh, edge_mesh, edge_ccs, info_on_pix, config, redund
         adjoint_edges = set([end_maps[x, y] for x, y in [(nx + 1, ny), (nx - 1, ny), (nx, ny + 1), (nx, ny - 1)] if
                              end_maps[x, y] != -1])
         point_to_adjoint[end_maps[nx, ny]] = (
-                point_to_adjoint[end_maps[nx, ny]] | adjoint_edges) if point_to_adjoint.get(
+            point_to_adjoint[end_maps[nx, ny]] | adjoint_edges) if point_to_adjoint.get(
             end_maps[nx, ny]) is not None else adjoint_edges
     valid_edge_ccs = filter_edge(mesh, edge_ccs, config, invalid=invalid)
     edge_canvas = np.zeros((mesh.graph['H'], mesh.graph['W'])) - 1
@@ -736,14 +736,14 @@ def remove_redundant_edge(mesh, edge_mesh, edge_ccs, info_on_pix, config, redund
                 for ne in four_nes:
                     try:
                         if invalid is True or (
-                                point_to_amount.get(ne) is None or point_to_amount[ne] < redundant_number) or \
-                                point_to_id[ne] in point_to_adjoint.get(point_to_id[valid_edge_node], set()):
+                            point_to_amount.get(ne) is None or point_to_amount[ne] < redundant_number) or \
+                            point_to_id[ne] in point_to_adjoint.get(point_to_id[valid_edge_node], set()):
                             mesh.add_edge(valid_edge_node, ne)
                     except:
                         import pdb;
                         pdb.set_trace()
         if (invalid is not True and end_number >= 1) or (
-                invalid is True and end_number >= 2 and eight_end_number >= 1 and db_eight_end_number >= 1):
+            invalid is True and end_number >= 2 and eight_end_number >= 1 and db_eight_end_number >= 1):
             for valid_edge_node in valid_edge_cc:
                 hx, hy, _ = valid_edge_node
                 four_nes = [(x, y, info_on_pix[(x, y)][0]['depth']) for x, y in
@@ -753,7 +753,7 @@ def remove_redundant_edge(mesh, edge_mesh, edge_ccs, info_on_pix, config, redund
                             (edge_canvas[x, y] == -1 or edge_canvas[x, y] == valid_edge_id)]
                 for ne in four_nes:
                     if invalid is True or (point_to_amount.get(ne) is None or point_to_amount[ne] < redundant_number) or \
-                            point_to_id[ne] in point_to_adjoint.get(point_to_id[valid_edge_node], set()):
+                        point_to_id[ne] in point_to_adjoint.get(point_to_id[valid_edge_node], set()):
                         mesh.add_edge(valid_edge_node, ne)
 
     return mesh
@@ -773,7 +773,7 @@ def judge_dangle(mark, mesh, node):
         dan_ne_node_a = mesh_neighbors[0]
         dan_ne_node_b = mesh_neighbors[1]
         if abs(dan_ne_node_a[0] - dan_ne_node_b[0]) > 1 or \
-                abs(dan_ne_node_a[1] - dan_ne_node_b[1]) > 1:
+            abs(dan_ne_node_a[1] - dan_ne_node_b[1]) > 1:
             mark[node[0], node[1]] = 3
 
     return mark
@@ -820,7 +820,7 @@ def remove_dangling(mesh, edge_ccs, edge_mesh, info_on_pix, image, depth, config
     for edge_idx, edge_cc in enumerate(edge_ccs):
         for edge_node in edge_cc:
             if not (mesh.graph['bord_up'] <= edge_node[0] < mesh.graph['bord_down'] - 1) or \
-                    not (mesh.graph['bord_left'] <= edge_node[1] < mesh.graph['bord_right'] - 1):
+                not (mesh.graph['bord_left'] <= edge_node[1] < mesh.graph['bord_right'] - 1):
                 continue
             mesh_neighbors = [*mesh.neighbors(edge_node)]
             mesh_neighbors = [xx for xx in mesh_neighbors \
@@ -834,7 +834,7 @@ def remove_dangling(mesh, edge_ccs, edge_mesh, info_on_pix, image, depth, config
                 dan_ne_node_a = [*mesh.neighbors(edge_node)][0]
                 dan_ne_node_b = [*mesh.neighbors(edge_node)][1]
                 if abs(dan_ne_node_a[0] - dan_ne_node_b[0]) > 1 or \
-                        abs(dan_ne_node_a[1] - dan_ne_node_b[1]) > 1:
+                    abs(dan_ne_node_a[1] - dan_ne_node_b[1]) > 1:
                     mark[edge_node[0], edge_node[1]] += 3
     mxs, mys = np.where(mark == 1)
     conn_0_nodes = [(x[0], x[1], info_on_pix[(x[0], x[1])][0]['depth']) for x in zip(mxs, mys) \
@@ -1100,11 +1100,11 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                     nes = mesh.neighbors(node)
                     for ne in nes:
                         if bool(context_map[ne[0], ne[1]]) is False and \
-                                bool(mask_map[ne[0], ne[1]]) is False and \
-                                bool(forbidden_map[ne[0], ne[1]]) is True and \
-                                bool(intouched_map[ne[0], ne[1]]) is False and \
-                                bool(intersect_map[ne[0], ne[1]]) is False and \
-                                bool(intersect_context_map[ne[0], ne[1]]) is False:
+                            bool(mask_map[ne[0], ne[1]]) is False and \
+                            bool(forbidden_map[ne[0], ne[1]]) is True and \
+                            bool(intouched_map[ne[0], ne[1]]) is False and \
+                            bool(intersect_map[ne[0], ne[1]]) is False and \
+                            bool(intersect_context_map[ne[0], ne[1]]) is False:
                             break_flag = False
                             if (i - passive_background) % 2 == 0 and (i - passive_background) % 8 != 0:
                                 four_nes = [xx for xx in [[ne[0] - 1, ne[1]], [ne[0] + 1, ne[1]], [ne[0], ne[1] - 1],
@@ -1128,11 +1128,11 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                     nes = mesh.neighbors(node)
                     for ne in nes:
                         if bool(context_map[ne[0], ne[1]]) is False and \
-                                bool(mask_map[ne[0], ne[1]]) is False and \
-                                bool(forbidden_map[ne[0], ne[1]]) is True and \
-                                bool(intouched_map[ne[0], ne[1]]) is False and \
-                                bool(intersect_map[ne[0], ne[1]]) is False and \
-                                bool(intersect_context_map[ne[0], ne[1]]) is False:
+                            bool(mask_map[ne[0], ne[1]]) is False and \
+                            bool(forbidden_map[ne[0], ne[1]]) is True and \
+                            bool(intouched_map[ne[0], ne[1]]) is False and \
+                            bool(intersect_map[ne[0], ne[1]]) is False and \
+                            bool(intersect_context_map[ne[0], ne[1]]) is False:
                             intersect_context_map[ne[0], ne[1]] = True
                             new_tmp_intersect_context_nodes.append(ne)
                 tmp_intersect_context_nodes = None
@@ -1158,11 +1158,11 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                         for vfne in vfnes: nes.append((kfne[0], kfne[1], vfne))
                 for ne in nes:
                     if bool(context_map[ne[0], ne[1]]) is False and \
-                            bool(mask_map[ne[0], ne[1]]) is False and \
-                            bool(forbidden_map[ne[0], ne[1]]) is True and \
-                            bool(intouched_map[ne[0], ne[1]]) is False and \
-                            bool(intersect_map[ne[0], ne[1]]) is False and \
-                            bool(intersect_context_map[ne[0], ne[1]]) is False:
+                        bool(mask_map[ne[0], ne[1]]) is False and \
+                        bool(forbidden_map[ne[0], ne[1]]) is True and \
+                        bool(intouched_map[ne[0], ne[1]]) is False and \
+                        bool(intersect_map[ne[0], ne[1]]) is False and \
+                        bool(intersect_context_map[ne[0], ne[1]]) is False:
                         if i == passive_background and inpaint_iter == 0:
                             if np.any(context_map[max(ne[0] - 1, 0):min(ne[0] + 2, mesh.graph['H']),
                                       max(ne[1] - 1, 0):min(ne[1] + 2, mesh.graph['W'])]) == True:
@@ -1186,7 +1186,7 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                                         cur_accomp_near_cc.append(ne)
                                         cur_invalid_extend_edge_cc.append(comp_far_node)
                                 if mesh_nodes[ne].get('edge_id') is not None and \
-                                        len(context_ccs[mesh_nodes[ne].get('edge_id')]) > 0:
+                                    len(context_ccs[mesh_nodes[ne].get('edge_id')]) > 0:
                                     intouched_fars = set(mesh_nodes[ne].get('far')) if mesh_nodes[ne].get(
                                         'far') is not None else set()
                                     accum_intouched_fars = set(intouched_fars)
@@ -1194,7 +1194,7 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                                         accum_intouched_fars |= set([*mesh.neighbors(intouched_far)])
                                     for intouched_far in accum_intouched_fars:
                                         if bool(mask_map[intouched_far[0], intouched_far[1]]) is True or \
-                                                bool(context_map[intouched_far[0], intouched_far[1]]) is True:
+                                            bool(context_map[intouched_far[0], intouched_far[1]]) is True:
                                             continue
                                         tmp_redundant_nodes.add(intouched_far)
                                         intouched_map[intouched_far[0], intouched_far[1]] = True
@@ -1202,7 +1202,7 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                                     intouched_nears = set(mesh_nodes[ne].get('near'))
                                     for intouched_near in intouched_nears:
                                         if bool(mask_map[intouched_near[0], intouched_near[1]]) is True or \
-                                                bool(context_map[intouched_near[0], intouched_near[1]]) is True:
+                                            bool(context_map[intouched_near[0], intouched_near[1]]) is True:
                                             continue
                                         tmp_redundant_nodes.add(intouched_near)
                                         intouched_map[intouched_near[0], intouched_near[1]] = True
@@ -1226,8 +1226,8 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                 for ne in nes:
                     mask_flag = (bool(mask_map[ne[0], ne[1]]) is False)
                     if bool(context_map[ne[0], ne[1]]) is False and mask_flag and \
-                            bool(forbidden_map[ne[0], ne[1]]) is True and bool(noncont_map[ne[0], ne[1]]) is False and \
-                            bool(intersect_context_map[ne[0], ne[1]]) is False:
+                        bool(forbidden_map[ne[0], ne[1]]) is True and bool(noncont_map[ne[0], ne[1]]) is False and \
+                        bool(intersect_context_map[ne[0], ne[1]]) is False:
                         if i == passive_context and inpaint_iter == 1:
                             mnes = mesh.neighbors(ne)
                             if any([mask_map[mne[0], mne[1]] == True for mne in mnes]) is True:
@@ -1235,7 +1235,7 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                                 tmp_intersect_context_nodes.append(ne)
                                 continue
                         if False and mesh_nodes[ne].get('near') is not None and mesh_nodes[ne].get(
-                                'edge_id') != edge_id:
+                            'edge_id') != edge_id:
                             noncont_nears = set(mesh_nodes[ne].get('near'))
                             for noncont_near in noncont_nears:
                                 if bool(context_map[noncont_near[0], noncont_near[1]]) is False:
@@ -1258,9 +1258,9 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
 
                 for ne in nes:
                     if bool(context_map[ne[0], ne[1]]) is False and \
-                            bool(mask_map[ne[0], ne[1]]) is False and \
-                            bool(intouched_map[ne[0], ne[1]]) is False and \
-                            bool(forbidden_map[ne[0], ne[1]]) is True:
+                        bool(mask_map[ne[0], ne[1]]) is False and \
+                        bool(intouched_map[ne[0], ne[1]]) is False and \
+                        bool(forbidden_map[ne[0], ne[1]]) is True:
                         new_tmp_intouched_nodes.append(ne)
                         intouched_map[ne[0], ne[1]] = True
             tmp_intouched_nodes = None
@@ -1269,15 +1269,15 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
             new_tmp_redundant_nodes = []
             for node in tmp_redundant_nodes:
                 if bool(context_map[node[0], node[1]]) is True or \
-                        bool(mask_map[node[0], node[1]]) is True:
+                    bool(mask_map[node[0], node[1]]) is True:
                     continue
                 nes = mesh.neighbors(node)
 
                 for ne in nes:
                     if bool(context_map[ne[0], ne[1]]) is False and \
-                            bool(mask_map[ne[0], ne[1]]) is False and \
-                            bool(intouched_map[ne[0], ne[1]]) is False and \
-                            bool(forbidden_map[ne[0], ne[1]]) is True:
+                        bool(mask_map[ne[0], ne[1]]) is False and \
+                        bool(intouched_map[ne[0], ne[1]]) is False and \
+                        bool(forbidden_map[ne[0], ne[1]]) is True:
                         new_tmp_redundant_nodes.append(ne)
                         intouched_map[ne[0], ne[1]] = True
             tmp_redundant_nodes = None
@@ -1286,15 +1286,15 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
             new_tmp_noncont_nodes = []
             for node in tmp_noncont_nodes:
                 if bool(context_map[node[0], node[1]]) is True or \
-                        bool(mask_map[node[0], node[1]]) is True:
+                    bool(mask_map[node[0], node[1]]) is True:
                     continue
                 nes = mesh.neighbors(node)
                 rmv_flag = False
                 for ne in nes:
                     if bool(context_map[ne[0], ne[1]]) is False and \
-                            bool(mask_map[ne[0], ne[1]]) is False and \
-                            bool(noncont_map[ne[0], ne[1]]) is False and \
-                            bool(forbidden_map[ne[0], ne[1]]) is True:
+                        bool(mask_map[ne[0], ne[1]]) is False and \
+                        bool(noncont_map[ne[0], ne[1]]) is False and \
+                        bool(forbidden_map[ne[0], ne[1]]) is True:
                         patch_context_map = context_map[max(ne[0] - 1, 0):min(ne[0] + 2, context_map.shape[0]),
                                             max(ne[1] - 1, 0):min(ne[1] + 2, context_map.shape[1])]
                         if bool(np.any(patch_context_map)) is True:
@@ -1428,26 +1428,26 @@ def context_and_holes(mesh, edge_ccs, config, specific_edge_id, specific_edge_lo
                 for node in tmp_context_nodes:
                     for ne in mesh.neighbors(node):
                         if ne in constraint_context_cc and \
-                                bool(tmp_mask_map[ne[0], ne[1]]) is False and \
-                                bool(tmp_context_map[ne[0], ne[1]]) is False and \
-                                bool(forbidden_map[ne[0], ne[1]]) is True:
+                            bool(tmp_mask_map[ne[0], ne[1]]) is False and \
+                            bool(tmp_context_map[ne[0], ne[1]]) is False and \
+                            bool(forbidden_map[ne[0], ne[1]]) is True:
                             new_tmp_context_nodes.append(ne)
                             tmp_context_map[ne[0], ne[1]] = True
                 accum_context_cc.extend(new_tmp_context_nodes)
                 for node in tmp_invalid_context_nodes:
                     for ne in mesh.neighbors(node):
                         if bool(tmp_mask_map[ne[0], ne[1]]) is False and \
-                                bool(tmp_context_map[ne[0], ne[1]]) is False and \
-                                bool(tmp_invalid_context_map[ne[0], ne[1]]) is False and \
-                                bool(forbidden_map[ne[0], ne[1]]) is True:
+                            bool(tmp_context_map[ne[0], ne[1]]) is False and \
+                            bool(tmp_invalid_context_map[ne[0], ne[1]]) is False and \
+                            bool(forbidden_map[ne[0], ne[1]]) is True:
                             tmp_invalid_context_map[ne[0], ne[1]] = True
                             new_tmp_invalid_context_nodes.append(ne)
                 for node in tmp_mask_nodes:
                     for ne in mesh.neighbors(node):
                         if bool(tmp_mask_map[ne[0], ne[1]]) is False and \
-                                bool(tmp_context_map[ne[0], ne[1]]) is False and \
-                                bool(tmp_invalid_context_map[ne[0], ne[1]]) is False and \
-                                bool(forbidden_map[ne[0], ne[1]]) is True:
+                            bool(tmp_context_map[ne[0], ne[1]]) is False and \
+                            bool(tmp_invalid_context_map[ne[0], ne[1]]) is False and \
+                            bool(forbidden_map[ne[0], ne[1]]) is True:
                             new_tmp_mask_nodes.add(ne)
                             tmp_mask_map[ne[0], ne[1]] = True
             init_invalid_context_map[tmp_context_map] = False
@@ -1523,7 +1523,7 @@ def DL_inpaint_edge(mesh,
     edges_in_mask = [set() for _ in range(len(edge_ccs))]
     tmp_specific_edge_id = []
     for edge_id, (context_cc, mask_cc, erode_context_cc, extend_context_cc, edge_cc) in enumerate(
-            zip(context_ccs, mask_ccs, erode_context_ccs, extend_context_ccs, edge_ccs)):
+        zip(context_ccs, mask_ccs, erode_context_ccs, extend_context_ccs, edge_ccs)):
         if len(specific_edge_id) > 0:
             if edge_id not in specific_edge_id:
                 continue
@@ -1543,7 +1543,7 @@ def DL_inpaint_edge(mesh,
                                        context_cc | erode_context_cc | extend_context_cc | extend_erode_context_ccs[
                                            edge_id], spdb=False)
         if specific_edge_loc is not None and \
-                (specific_edge_loc is not None and edge_dict['mask'][specific_edge_loc[0], specific_edge_loc[1]] == 0):
+            (specific_edge_loc is not None and edge_dict['mask'][specific_edge_loc[0], specific_edge_loc[1]] == 0):
             continue
         mask_size = get_valid_size(edge_dict['mask'])
         mask_size = dilate_valid_size(mask_size, edge_dict['mask'], dilate=[20, 20])
@@ -1649,7 +1649,7 @@ def DL_inpaint_edge(mesh,
                         edges_infos[(end_mx, end_my)].append(new_edge_info)
                         edges_in_mask[edge_id].add((end_mx, end_my))
     for edge_id, (context_cc, mask_cc, erode_context_cc, extend_context_cc, edge_cc) in enumerate(
-            zip(context_ccs, mask_ccs, erode_context_ccs, extend_context_ccs, edge_ccs)):
+        zip(context_ccs, mask_ccs, erode_context_ccs, extend_context_ccs, edge_ccs)):
         if len(specific_edge_id) > 0:
             if edge_id not in specific_edge_id:
                 continue
@@ -1660,7 +1660,7 @@ def DL_inpaint_edge(mesh,
                                         extend_edge_ccs[edge_id],
                                         mesh.graph['H'], mesh.graph['W'], mesh)
         if specific_edge_loc is not None and \
-                (specific_edge_loc is not None and edge_dict['mask'][specific_edge_loc[0], specific_edge_loc[1]] == 0):
+            (specific_edge_loc is not None and edge_dict['mask'][specific_edge_loc[0], specific_edge_loc[1]] == 0):
             continue
         else:
             tmp_specific_edge_id.append(edge_id)
@@ -2313,7 +2313,7 @@ class Canvas_view():
         self.view.camera.view_changed()
 
 
-def output_3d_photo_(image, sample, ply_data, config):
+def output_3d_photo_(image, sample, ply_data, config, id_type):
     verts, colors, faces, Height, Width, hFov, vFov = ply_data
     depth = read_MiDaS_depth(sample['depth_fi'], 3.0, config['output_h'], config['output_w'])
     mean_loc_depth = depth[depth.shape[0] // 2, depth.shape[1] // 2]
@@ -2331,7 +2331,7 @@ def output_3d_photo_(image, sample, ply_data, config):
                             videos_poses, video_basename, config.get('original_h'),
                             config.get('original_w'), border=[int(xx) for xx in [top, down, left, right]], depth=depth,
                             normal_canvas=None, all_canvas=None,
-                            mean_loc_depth=mean_loc_depth)
+                            mean_loc_depth=mean_loc_depth, id_type=id_type)
 
 
 def output_3d_photo(verts, colors, faces, Height, Width, hFov, vFov, tgt_poses, video_traj_types, ref_pose,

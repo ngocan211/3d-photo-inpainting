@@ -55,8 +55,10 @@ class FilePrepareProcess(WhilePipeProcess):
 
     def handle_message(self, obj):
         uuid = obj['uuid']
+        type_id = obj.get('type_id', 0)
         try:
-            cmd = f'/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main.py --srcfolder image_/{uuid} > {uuid}.txt'
+            # cmd = f'/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main.py --srcfolder image_/{uuid} > {uuid}.txt'
+            cmd = f'/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main_.py {type_id} {uuid} > video_log/{uuid}.txt'
             subprocess.check_output([cmd], shell=True)
 
             # s3_object = self.s3_client.get_object(Bucket=s3_bucket, Key=s3_key)
