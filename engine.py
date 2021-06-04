@@ -1,4 +1,3 @@
-import os
 import logging
 import subprocess
 from queue import Queue
@@ -11,31 +10,6 @@ from multiprocessing import Pipe
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.ERROR)
 QUEUE_CONFIG = {'address': ('0.0.0.0', 50001), 'authkey': b'abracadabrae'}
 
-
-# cmd = "/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main.py --srcfolder image2 > test.txt"
-# subprocess.check_output([cmd], shell=True)
-
-#
-# # subprocess.Popen([cmd], close_fds=True)
-# subprocess.Popen(['/home/ubuntu/anaconda3/envs/py37/bin/python' ,'/home/ubuntu/3d-photo-inpainting/main.py'], close_fds=True)
-# # # subprocess.check_output([cmd], shell=True)
-# # import os
-# #
-# # #
-# # # os.system(cmd)
-# # print('hello')
-# import os, time, sys, subprocess
-#
-# if len(sys.argv) == 2:
-#     time.sleep(1)
-#     print('track end')
-#     if sys.platform == 'darwin':
-#         subprocess.Popen(['say', 'hello'])
-# else:
-#     log = open('somefile.txt', 'a')  # so that data written to it will be appended
-#     print('main begin')
-#     subprocess.Popen(['python', os.path.realpath(__file__), '0'], stdout=log, stderr=log, close_fds=True)
-#     print('main end')
 
 class FilePrepareProcess(WhilePipeProcess):
     def __init__(self, send_, api_queue_config, engine_pipe):
@@ -54,18 +28,16 @@ class FilePrepareProcess(WhilePipeProcess):
         return [self.recv_.get()]
 
     def handle_message(self, obj):
-        uuid = obj['uuid']
-        type_id = obj.get('type_id', 0)
+        uuid = obj.get('uuid', '')
+        type_id = obj.get('type_id', '')
         try:
             # cmd = f'/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main.py --srcfolder image_/{uuid} > {uuid}.txt'
-            cmd = f'/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main_.py {type_id} {uuid} > video_log/{uuid}.txt'
+            logging.error(uuid)
+            cmd = f'/home/ubuntu/anaconda3/envs/py37/bin/python -u /home/ubuntu/3d-photo-inpainting/main_.py {uuid} {type_id} > video_log/{uuid}.txt'
             subprocess.check_output([cmd], shell=True)
-
-            # s3_object = self.s3_client.get_object(Bucket=s3_bucket, Key=s3_key)
-            # obj['image_io'] = Image.open(io.BytesIO(s3_object['Body'].read()))
+            logging.error(f'end {uuid}')
 
             self.send_.send(obj)
-            # logging.error('sent pil')
         except Exception as ex:
             raise ex
 

@@ -126,17 +126,23 @@ def video3d(sample, config, id_type):
 
 
 if __name__ == '__main__':
-    type_id = int((sys.argv[1:] + [0])[0])
-    uuid = (sys.argv[2:] + [''])[0]
+    uuid = (sys.argv[1:] + [''])[0]
+    type_id = (sys.argv[2:] + [None])[0]
+
     config = yaml.load(open('argument.yml', 'r'))
 
     if config['offscreen_rendering'] is True:
         vispy.use(app='egl')
 
-    sample = get_MiDaS_samples_('original', config)
+    sample = get_MiDaS_samples_(uuid, config)
 
     # process some config
     config = config_adjust(sample, config)
+    if type_id is not None:
+        video_file = config['video_folder'] + '/' + uuid + '_' + config['video_postfix'][int(type_id)] + '.mp4'
+        video_file_in_process = video_file + '.in_process'
+        open(video_file_in_process, mode='a').close()  # create empty file
 
-    video3d(sample=get_MiDaS_samples_(uuid, config), config=config, id_type=type_id)
-    # gen_ply(sample=sample, config=config)
+        video3d(sample=get_MiDaS_samples_(uuid, config), config=config, id_type=int(type_id))
+    else:
+        gen_ply(sample=sample, config=config)

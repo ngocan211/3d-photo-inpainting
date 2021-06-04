@@ -13,6 +13,7 @@
             crossorigin="anonymous"></script>
 
     <script type="text/javascript">
+        var UUID
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -46,27 +47,49 @@
             document.getElementById("submit").value = 'Upload';
         }
 
-        function video(url) {
-            console.log(url)
+        async function video_gen(uuid, type_id) {
+            var continue_flag = true
+            let model_url = document.location.origin + '/video_gen?uuid=' + uuid + '&type_id=' + type_id
+
+            for (i = 0; i < 150 && continue_flag; i++) {
+                $.ajax({
+                    url: model_url,
+                    type: 'GET',
+                    success: function (res) {
+                        if (res['video']) {
+                            document.getElementById("videos").innerHTML = `
+                            <video width="600" controls autoplay >
+                              <source src="${document.location.origin}/${res['video']}" type="video/mp4">
+                            </video>`
+                            UUID = res['uuid']
+                            continue_flag = false
+                        }
+                        console.log(res)
+                    }
+                })
+                await sleep(4000);
+            }
+        }
+
+        function video_model(original_url) {
+            let model_url = document.location.origin + '/video_model?object_id=' + encodeURIComponent(original_url)
+            console.log(model_url)
             $.ajax({
-                url: url,
+                url: model_url,
                 type: 'GET',
                 success: function (res) {
-                    console.log(res['render'])
-                    video_render(res['render'], res['uuid'])
+                    console.log(res)
+                    video_gen(res['uuid'], 0)
                 }
             })
         }
 
-        function upload_to_pre_url(file, pre_signed_url, original_url) {
+        function post_to_pre_signed_url(file, pre_signed_url, original_url) {
             fetch(pre_signed_url, {
                 method: 'PUT',
                 body: file
             }).then(() => {
-                let request_url = document.location.origin + '/video?object_id=' + encodeURIComponent(original_url)
-                console.log(original_url)
-                // document.location.href = request_url;
-                video(request_url)
+                video_model(original_url)
             }).catch((e) => {
                 console.error(e);
             });
@@ -78,19 +101,20 @@
                 type: 'POST',
                 data: JSON.stringify({"files": [{"filename": file.name, "content_type": file.type}]}),
                 success: function (res) {
-                    upload_to_pre_url(file, res[0]["upload_url"], res[0]["original_url"])
+                    post_to_pre_signed_url(file, res[0]["upload_url"], res[0]["original_url"])
                     // console.log(res)
                 }
             })
         }
 
         function submit_file() {
-            document.getElementById("submit").disabled = true;
-            document.getElementById("submit").value = 'Uploading...';
-            document.getElementById("link").innerHTML = '';
             pre_signed_upload((document.querySelector("#selector").files)[0]);
-            document.getElementById("submit").disabled = false;
-            document.getElementById("submit").value = 'Upload';
+            // document.getElementById("submit").disabled = true;
+            // document.getElementById("submit").value = 'Uploading...';
+            // document.getElementById("link").innerHTML = '';
+            // pre_signed_upload((document.querySelector("#selector").files)[0]);
+            // document.getElementById("submit").disabled = false;
+            // document.getElementById("submit").value = 'Upload';
         }
     </script>
 </head>
@@ -102,12 +126,33 @@
 </form>
 <div id="thumbnail">
 </div>
-<div id="status">
-    <textarea id="statustext" rows="20" cols="200">
-  </textarea>
+<!--<div id="status">-->
+<!--    <textarea id="statustext" rows="20" cols="200">-->
+<!--  </textarea>-->
+<!--</div>-->
+<!--<div id="link">-->
+
+<!--</div>-->
+<div style="text-align:center" id="videos">
+
 </div>
 <div id="link">
 
 </div>
+<label for="type_id">Camera move</label>
+
+<select name="type_id" id="type_id">
+    <option value="0">Zoom in</option>
+    <option value="1">Zoom out</option>
+    <option value="2">Move left</option>
+    <option value="3">Move right</option>
+    <option value="4">Move up</option>
+    <option value="5">Move down</option>
+    <option value="6">Dolly Zoom in</option>
+    <option value="7">Dolly zoom out</option>
+    <option value="8">Swing zoom in </option>
+    <option value="9">Swing zoom out</option>
+</select>
+<input id="gen" type="button" value="Create video" onclick="video_gen(UUID, parseInt(document.getElementById('type_id').value))">
 </body>
 </html>

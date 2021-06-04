@@ -16,9 +16,9 @@ depth_folder: depth
 mesh_folder: mesh
 video_folder: videos
 load_ply: False
-save_ply: False
+save_ply: True
 inference_video: True
-gpu_ids: 1
+gpu_ids: 0
 offscreen_rendering: False
 img_format: '.jpg'
 depth_format: '.npy'
