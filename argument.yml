@@ -4,11 +4,11 @@ rgb_feat_model_ckpt: checkpoints/color-model.pth
 MiDaS_model_ckpt: MiDaS/model.pt
 fps: 40
 num_frames: 240
-x_shift_range: [0.00, 0.00, -0.02, -0.02]
-y_shift_range: [0.00, 0.00, -0.02, -0.00]
-z_shift_range: [-0.05, -0.05, -0.07, -0.07]
-traj_types: ['double-straight-line', 'double-straight-line', 'circle', 'circle']
-video_postfix: ['dolly-zoom-in', 'zoom-in', 'circle', 'swing']
+x_shift_range: [ 0.00, 0.00, 0.00, -0.02, 0.00, 0.00, -0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00 ]
+y_shift_range: [ 0.00, 0.00, 0.00, -0.02, -0.05, 0.05, 0.00, 0.00, 0.00, 0.00, -0.05, -0.05, 0.05, 0.05 ]
+z_shift_range: [ -0.05, 0.05, -0.05, -0.07, 0.00, 0.00, 0.00, 0.00, -0.05, -0.05 0.00, 0.00, 0.00, 0.00 ]
+traj_types: [ 'straight-line', 'straight-line','circle', 'straight-line', 'straight-line', 'straight-line', 'double-straight-line', 'double-straight-line', 'double-straight-line', 'double-straight-line', 'double-straight-line', 'double-straight-line', 'double-straight-line', 'double-straight-line' ]
+video_postfix: [ 'zoom_in','zoom_out','dolly_zoom_in','circle_motion','pedestal_up','pedestal_down','track_left', 'track_right','dynamic_zoom in_1','dynamic_zoom_in_2','dynamic_zoom_left_1','dynamic_zoom_left_2' ,'dynamic_zoom_right_1','dynamic_zoom_right_2' ]
 specific: ''
 longer_side_len: 960
 src_folder: image
@@ -26,7 +26,7 @@ require_midas: True
 depth_threshold: 0.04
 ext_edge_threshold: 0.002
 sparse_iter: 5
-filter_size: [7, 7, 5, 5, 5]
+filter_size: [ 7, 7, 5, 5, 5 ]
 sigma_s: 4.0
 sigma_r: 0.5
 redundant_number: 12
@@ -42,5 +42,5 @@ depth_edge_dilate_2: 5
 extrapolate_border: False
 extrapolation_thickness: 60
 repeat_inpaint_edge: True
-crop_border: [0.03, 0.03, 0.05, 0.03]
+crop_border: [ 0.03, 0.03, 0.05, 0.03 ]
 anti_flickering: True
