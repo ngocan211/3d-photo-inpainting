@@ -48,19 +48,25 @@
         }
 
         async function video_gen(uuid, type_id) {
+            document.getElementById("gen").disabled = true;
+            document.getElementById("gen").value = 'Creating...';
             var continue_flag = true
             let model_url = document.location.origin + '/video_gen?uuid=' + uuid + '&type_id=' + type_id
-
+            var count=150;
             for (i = 0; i < 150 && continue_flag; i++) {
                 $.ajax({
                     url: model_url,
                     type: 'GET',
                     success: function (res) {
+                        count=count-1
+                        document.getElementById("gen").value = 'Creating...('+count+')';
                         if (res['video']) {
                             document.getElementById("videos").innerHTML = `
                             <video width="600" controls autoplay >
                               <source src="${document.location.origin}/${res['video']}" type="video/mp4">
                             </video>`
+                            document.getElementById("gen").disabled = false;
+                            document.getElementById("gen").value = 'Create';
                             UUID = res['uuid']
                             continue_flag = false
                         }
@@ -109,12 +115,12 @@
 
         function submit_file() {
             pre_signed_upload((document.querySelector("#selector").files)[0]);
-            // document.getElementById("submit").disabled = true;
-            // document.getElementById("submit").value = 'Uploading...';
+            document.getElementById("submit").disabled = true;
+            document.getElementById("submit").value = 'Uploading...';
             // document.getElementById("link").innerHTML = '';
             // pre_signed_upload((document.querySelector("#selector").files)[0]);
-            // document.getElementById("submit").disabled = false;
-            // document.getElementById("submit").value = 'Upload';
+            document.getElementById("submit").disabled = false;
+            document.getElementById("submit").value = 'Upload';
         }
     </script>
 </head>
@@ -144,15 +150,17 @@
 <select name="type_id" id="type_id">
     <option value="0">Zoom in</option>
     <option value="1">Zoom out</option>
-    <option value="2">Move left</option>
-    <option value="3">Move right</option>
+    <option value="2">Dolly zoom in</option>
+    <option value="3">Circle motion</option>
     <option value="4">Move up</option>
     <option value="5">Move down</option>
-    <option value="6">Dolly Zoom in</option>
-    <option value="7">Dolly zoom out</option>
-    <option value="8">Swing zoom in </option>
-    <option value="9">Swing zoom out</option>
+    <option value="6">Move left</option>
+    <option value="7">Move right</option>
+    <option value="8">Dynamic zoom in</option>
+    <option value="9">Dynamic move left</option>
+    <option value="10">Dynamic move right</option>
 </select>
-<input id="gen" type="button" value="Create video" onclick="video_gen(UUID, parseInt(document.getElementById('type_id').value))">
+<input id="gen" type="button" value="Create video"
+       onclick="video_gen(UUID, parseInt(document.getElementById('type_id').value))">
 </body>
 </html>

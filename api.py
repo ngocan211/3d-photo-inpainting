@@ -37,7 +37,7 @@ def video_model():
             save_file = f'{folder}/{uuid_}.jpg'
             urllib.request.urlretrieve(url_link, save_file)  # save image url to file
             _queue.put({'uuid': uuid_})
-            return jsonify({'uuid': uuid_})
+            return jsonify({'uuid': uuid_, 'message': 'create 3D model '})
     except Exception as ex:
         print(ex)
         raise ex
