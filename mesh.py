@@ -217,7 +217,7 @@ def generate_face(mesh, info_on_pix, ply_flag):
             input.append(' '.join(['3', cur_id_b, cur_id_self, cur_id_a]) + '\n')
         else:
             input.append([cur_id_b, cur_id_self, cur_id_a])
-
+            # input.append([int(cur_id_b), int(cur_id_self), int(cur_id_a)])
 
     mesh_nodes = mesh.nodes
     for node in mesh_nodes:
@@ -2186,13 +2186,13 @@ def write_ply(image,
             else:
                 node_str_color.append(str_color)
                 node_str_point.append(str_pt)
-    str_faces = generate_face(input_mesh, info_on_pix, config.get('save_ply'))
-    # str_faces = generate_face(input_mesh, info_on_pix, False)
+    # str_faces = generate_face(input_mesh, info_on_pix, config.get('save_ply'))
+    str_faces = generate_face(input_mesh, info_on_pix, False)
 
     mesh_fi = ply_name
     faces_fi = mesh_fi + '.faces.npy'
 
-    np.save(faces_fi, np.array(str_faces))
+    np.save(faces_fi, np.array(str_faces).astype(int))
 
     print(f'{time.strftime("%Y-%m-%d %H:%M:%S")} Writing mesh file {ply_name}')
     if config['save_ply'] is True:
@@ -2215,7 +2215,7 @@ def write_ply(image,
             ply_fi.write('property list uchar int vertex_index\n')
             ply_fi.write('end_header\n')
             ply_fi.writelines(node_str_list)
-            ply_fi.writelines(str_faces)
+            # ply_fi.writelines(str_faces)
         ply_fi.close()
         write_ply_npy(ply_name)
         return input_mesh
@@ -2278,10 +2278,10 @@ def write_ply_npy(mesh_fi):
         import pdb
         pdb.set_trace()
 
-    for f_info in face_infos:
-        _, v1, v2, v3 = [int(f) for f in f_info.split('\n')[0].split(' ')]
-        faces.append([v1, v2, v3])
-    faces = np.array(faces)
+    # for f_info in face_infos:
+    #     _, v1, v2, v3 = [int(f) for f in f_info.split('\n')[0].split(' ')]
+    #     faces.append([v1, v2, v3])
+    # faces = np.array(faces)
 
     verts_fi = mesh_fi + '.verts.npy'
     faces_fi = mesh_fi + '.faces.npy'
@@ -2290,7 +2290,7 @@ def write_ply_npy(mesh_fi):
 
     logging.error('save vert')
     np.save(verts_fi, verts)
-    np.save(faces_fi, faces)
+    # np.save(faces_fi, faces)
     np.save(colors_fi, colors)
     np.save(fov_fi, [Height, Width, hFov, vFov])
 
