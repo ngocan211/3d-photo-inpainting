@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import time
 
@@ -204,17 +206,18 @@ def get_neighbors(mesh, node):
     return [*mesh.neighbors(node)]
 
 
-def generate_face(mesh, info_on_pix, config):
-    H, W = mesh.graph['H'], mesh.graph['W']
+def generate_face(mesh, info_on_pix, ply_flag):
+    # H, W = mesh.graph['H'], mesh.graph['W']
+    # num_node = len(mesh.nodes)
+    # ply_flag = config.get('save_ply')
     str_faces = []
-    num_node = len(mesh.nodes)
-    ply_flag = config.get('save_ply')
 
     def out_fmt(input, cur_id_b, cur_id_self, cur_id_a, ply_flag):
         if ply_flag is True:
             input.append(' '.join(['3', cur_id_b, cur_id_self, cur_id_a]) + '\n')
         else:
             input.append([cur_id_b, cur_id_self, cur_id_a])
+
 
     mesh_nodes = mesh.nodes
     for node in mesh_nodes:
@@ -2132,18 +2135,20 @@ def write_ply(image,
     else:
         node_str_color = []
         node_str_point = []
+
     out_fmt = lambda x, x_flag: str(x) if x_flag is True else x
-    point_time = 0
-    hlight_time = 0
-    cur_id_time = 0
-    node_str_time = 0
-    generate_face_time = 0
-    point_list = []
+    # point_time = 0
+    # hlight_time = 0
+    # cur_id_time = 0
+    # node_str_time = 0
+    # generate_face_time = 0
+    # point_list = []
     k_00, k_02, k_11, k_12 = \
         input_mesh.graph['cam_param_pix_inv'][0, 0], input_mesh.graph['cam_param_pix_inv'][0, 2], \
         input_mesh.graph['cam_param_pix_inv'][1, 1], input_mesh.graph['cam_param_pix_inv'][1, 2]
     w_offset = input_mesh.graph['woffset']
     h_offset = input_mesh.graph['hoffset']
+
     for pix_xy, pix_list in info_on_pix.items():
         for pix_idx, pix_info in enumerate(pix_list):
             pix_depth = pix_info['depth'] if pix_info.get('real_depth') is None else pix_info['real_depth']
@@ -2152,11 +2157,13 @@ def write_ply(image,
             if input_mesh.has_node((pix_xy[0], pix_xy[1], pix_info['depth'])) is False:
                 return False
                 continue
+
             if pix_info.get('overlap_number') is not None:
                 str_color = [out_fmt(x, ply_flag) for x in
                              (pix_info['color'] / pix_info['overlap_number']).astype(np.uint8).tolist()]
             else:
                 str_color = [out_fmt(x, ply_flag) for x in pix_info['color'].tolist()]
+
             if pix_info.get('edge_occlusion') is True:
                 str_color.append(out_fmt(4, ply_flag))
             else:
@@ -2164,11 +2171,13 @@ def write_ply(image,
                     str_color.append(out_fmt(1, ply_flag))
                 else:
                     str_color.append(out_fmt(pix_info.get('inpaint_id') + 1, ply_flag))
+
             if pix_info.get('modified_border') is True or pix_info.get('ext_pixel') is True:
                 if len(str_color) == 4:
                     str_color[-1] = out_fmt(5, ply_flag)
                 else:
                     str_color.append(out_fmt(5, ply_flag))
+
             pix_info['cur_id'] = vertex_id
             input_mesh.nodes[(pix_xy[0], pix_xy[1], pix_info['depth'])]['cur_id'] = out_fmt(vertex_id, ply_flag)
             vertex_id += 1
@@ -2177,9 +2186,15 @@ def write_ply(image,
             else:
                 node_str_color.append(str_color)
                 node_str_point.append(str_pt)
-    str_faces = generate_face(input_mesh, info_on_pix, config)
-    print(f'{time.strftime("%Y-%m-%d %H:%M:%S")} Writing mesh file {ply_name}')
+    str_faces = generate_face(input_mesh, info_on_pix, config.get('save_ply'))
+    # str_faces = generate_face(input_mesh, info_on_pix, False)
 
+    mesh_fi = ply_name
+    faces_fi = mesh_fi + '.faces.npy'
+
+    np.save(faces_fi, np.array(str_faces))
+
+    print(f'{time.strftime("%Y-%m-%d %H:%M:%S")} Writing mesh file {ply_name}')
     if config['save_ply'] is True:
         print("Writing mesh file %s ..." % ply_name)
         with open(ply_name, 'w') as ply_fi:
@@ -2202,6 +2217,7 @@ def write_ply(image,
             ply_fi.writelines(node_str_list)
             ply_fi.writelines(str_faces)
         ply_fi.close()
+        write_ply_npy(ply_name)
         return input_mesh
     else:
         H = int(input_mesh.graph['H'])
@@ -2214,6 +2230,90 @@ def write_ply(image,
         str_faces = np.array(str_faces)
 
         return node_str_point, node_str_color, str_faces, H, W, hFov, vFov
+
+def write_ply_npy(mesh_fi):
+    ply_fi = open(mesh_fi, 'r')
+    Height = None
+    Width = None
+    hFov = None
+    vFov = None
+    while True:
+        line = ply_fi.readline().split('\n')[0]
+        if line.startswith('element vertex'):
+            num_vertex = int(line.split(' ')[-1])
+        elif line.startswith('element face'):
+            num_face = int(line.split(' ')[-1])
+        elif line.startswith('comment'):
+            if line.split(' ')[1] == 'H':
+                Height = int(line.split(' ')[-1].split('\n')[0])
+            if line.split(' ')[1] == 'W':
+                Width = int(line.split(' ')[-1].split('\n')[0])
+            if line.split(' ')[1] == 'hFov':
+                hFov = float(line.split(' ')[-1].split('\n')[0])
+            if line.split(' ')[1] == 'vFov':
+                vFov = float(line.split(' ')[-1].split('\n')[0])
+        elif line.startswith('end_header'):
+            break
+    contents = ply_fi.readlines()
+    vertex_infos = contents[:num_vertex]
+    face_infos = contents[num_vertex:]
+    verts = []
+    colors = []
+    faces = []
+    logging.error('for')
+    for v_info in vertex_infos:
+        str_info = [float(v) for v in v_info.split('\n')[0].split(' ')]
+        if len(str_info) == 6:
+            vx, vy, vz, r, g, b = str_info
+        else:
+            vx, vy, vz, r, g, b, hi = str_info
+        verts.append([vx, vy, vz])
+        colors.append([r, g, b, hi])
+    logging.error('for end')
+    verts = np.array(verts)
+    try:
+        colors = np.array(colors)
+        colors[..., :3] = colors[..., :3] / 255.
+    except:
+        import pdb
+        pdb.set_trace()
+
+    for f_info in face_infos:
+        _, v1, v2, v3 = [int(f) for f in f_info.split('\n')[0].split(' ')]
+        faces.append([v1, v2, v3])
+    faces = np.array(faces)
+
+    verts_fi = mesh_fi + '.verts.npy'
+    faces_fi = mesh_fi + '.faces.npy'
+    colors_fi = mesh_fi + '.colors.npy'
+    fov_fi = mesh_fi + '.fov.npy'
+
+    logging.error('save vert')
+    np.save(verts_fi, verts)
+    np.save(faces_fi, faces)
+    np.save(colors_fi, colors)
+    np.save(fov_fi, [Height, Width, hFov, vFov])
+
+
+def read_ply_(mesh_fi):
+    verts_fi = mesh_fi + '.verts.npy'
+    faces_fi = mesh_fi + '.faces.npy'
+    colors_fi = mesh_fi + '.colors.npy'
+    fov_fi = mesh_fi + '.fov.npy'
+
+    # logging.error('save vert')
+    # np.save(verts_fi, verts)
+    # np.save(faces_fi, faces)
+    # np.save(colors_fi, colors)
+
+    logging.error('load npy ')
+    verts = np.load(verts_fi)
+    faces = np.load(faces_fi)
+    colors = np.load(colors_fi)
+    [Height, Width, hFov, vFov] = np.load(fov_fi)
+    logging.error('load npy end')
+
+    return verts, colors, faces, Height, Width, hFov, vFov
 
 
 def read_ply(mesh_fi):
@@ -2317,7 +2417,10 @@ def output_3d_photo_(image, sample, ply_data, config, id_type):
     verts, colors, faces, Height, Width, hFov, vFov = ply_data
     depth = read_MiDaS_depth(sample['depth_fi'], 3.0, config['output_h'], config['output_w'])
     mean_loc_depth = depth[depth.shape[0] // 2, depth.shape[1] // 2]
+    logging.error('Making video')
+
     print(f"Making video at {time.time()}")
+
     videos_poses, video_basename = copy.deepcopy(sample['tgts_poses']), sample['tgt_name']
     top = (config.get('original_h') // 2 - sample['int_mtx'][1, 2] * config['output_h'])
     left = (config.get('original_w') // 2 - sample['int_mtx'][0, 2] * config['output_w'])
@@ -2351,6 +2454,7 @@ def output_3d_photo(verts, colors, faces, Height, Width, hFov, vFov, tgt_poses, 
 
     fov_in_rad = max(cam_mesh.graph['vFov'], cam_mesh.graph['hFov'])
     fov = (fov_in_rad * 180 / np.pi)
+    logging.error('fov:')
     print("fov: " + str(fov))
     init_factor = 1
     if config.get('anti_flickering') is True:
@@ -2402,12 +2506,16 @@ def output_3d_photo(verts, colors, faces, Height, Width, hFov, vFov, tgt_poses, 
     anchor = np.array(anchor)
     plane_width = np.tan(fov_in_rad / 2.) * np.abs(mean_loc_depth)
     # for video_pose, video_traj_type in zip(videos_poses, video_traj_types):
+    logging.error('for video_pose:')
+
     for video_pose, video_traj_type in zip([videos_poses[id_type]], [video_traj_types[id_type]]):
         stereos = []
         tops = [];
         buttoms = [];
         lefts = [];
         rights = []
+        logging.error('for tp_id:')
+
         for tp_id, tp in enumerate(video_pose):
             rel_pose = np.linalg.inv(np.dot(tp, np.linalg.inv(ref_pose)))
             axis, angle = transforms3d.axangles.mat2axangle(rel_pose[0:3, 0:3])
@@ -2457,9 +2565,11 @@ def output_3d_photo(verts, colors, faces, Height, Width, hFov, vFov, tgt_poses, 
         else:
             atop = 0; abuttom = img.shape[0] - img.shape[0] % 2; aleft = 0; aright = img.shape[1] - img.shape[1] % 2
         """
-        atop = 0;
-        abuttom = img.shape[0] - img.shape[0] % 2;
-        aleft = 0;
+        logging.error('for tp_id: end')
+
+        atop = 0
+        abuttom = img.shape[0] - img.shape[0] % 2
+        aleft = 0
         aright = img.shape[1] - img.shape[1] % 2
         crop_stereos = []
         for stereo in stereos:

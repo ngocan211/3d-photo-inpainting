@@ -7,10 +7,11 @@ import yaml
 import vispy
 import torch
 import imageio
+import logging
 import numpy as np
 
 from bilateral_filtering import sparse_bilateral_filtering
-from mesh import read_ply, output_3d_photo_, write_ply
+from mesh import read_ply, output_3d_photo_, write_ply, read_ply_
 from networks import Inpaint_Color_Net, Inpaint_Depth_Net, Inpaint_Edge_Net
 from utils import get_MiDaS_samples_, read_MiDaS_depth
 from MiDaS import MiDaS_utils
@@ -120,12 +121,15 @@ def video3d(sample, config, id_type):
     image = cv2.resize(image, (config['output_w'], config['output_h']), interpolation=cv2.INTER_AREA)
 
     # Load ply data files
-    ply_data = read_ply(os.path.join(config['mesh_folder'], sample['src_pair_name'] + '.ply'))
+    ply_data = read_ply_(os.path.join(config['mesh_folder'], sample['src_pair_name'] + '.ply'))
 
     output_3d_photo_(image, sample, ply_data, config, id_type)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s')
+
+    logging.error('start')
     uuid = (sys.argv[1:] + [''])[0]
     type_id = (sys.argv[2:] + [None])[0]
 
@@ -135,7 +139,6 @@ if __name__ == '__main__':
         vispy.use(app='egl')
 
     sample = get_MiDaS_samples_(uuid, config)
-
     # process some config
     config = config_adjust(sample, config)
     if type_id is not None:
@@ -146,3 +149,4 @@ if __name__ == '__main__':
         video3d(sample=get_MiDaS_samples_(uuid, config), config=config, id_type=int(type_id))
     else:
         gen_ply(sample=sample, config=config)
+    logging.error('end')
